@@ -365,6 +365,7 @@ class CrossWOZRunner(BaseRunner):
         best_joint_acc = 0
         best_epoch = 0
         best_score = 0
+        best_match = 0
         for epoch in range(1, self.cfg.epochs + 1):
             train_iterator = self.iterator.get_data_iterator(
                 train_batches, self.cfg.task, self.cfg.ururu, self.cfg.context_size
@@ -387,11 +388,19 @@ class CrossWOZRunner(BaseRunner):
                         best_epoch = epoch
                     logger.info('[Test] Best joint acc is: {}; at {} epoch'.format(best_joint_acc, best_epoch))
             else:
-                if epoch >= 10 :
+                if epoch >= 1 :
                     metric_results = self.predict()
+                    latest_ckpt = 'ckpt-epoch{}'.format(epoch)
+                    save_path = os.path.join(self.cfg.model_dir, latest_ckpt)
+                    save_json(metric_results, os.path.join(save_path, 'metric_results'))
                     if metric_results["all"]["combined_score"] > best_score:
                         best_score = metric_results["all"]["combined_score"]
                         best_epoch = epoch
+                    logger.info('[Test] Best score is: {}; at {} epoch'.format(best_score, best_epoch))
+                    if metric_results["all"]["match"] > best_match:
+                        best_match = metric_results["all"]["match"]
+                        best_epoch = epoch
+                    logger.info('[Test] Best match is: {}; at {} epoch'.format(best_match, best_epoch))
 
     def validation(self, global_step):
         self.model.eval()

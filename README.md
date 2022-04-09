@@ -1,3 +1,3 @@
-# CrossWOZ
+# TOD-Chinese
 
-基于CPT和BART模型在中文任务型对话数据集CrossWOZ上实现的生成式DST模型
+基于CPT和BART模型在中文任务型对话数据集CrossWOZ、RiSAWOZ实现E2E

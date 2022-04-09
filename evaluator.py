@@ -90,7 +90,7 @@ class CrossWOZEvaluator(object):
         self.all_domains = definitions_cw.ALL_DOMAINS
 
         self.gold_data = load_json(os.path.join(
-            self.reader.data_dir, "{}_mttod.json".format(eval_data_type)))
+            self.reader.data_dir, "{}.json".format(eval_data_type)))
 
         self.eval_data_type = eval_data_type
 

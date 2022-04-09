@@ -1,11 +1,10 @@
-CUDA_VISIBLE_DEVICES=0 python main_cw.py \
+CUDA_VISIBLE_DEVICES=5 python main_cw.py \
   -run_type train \
   -task e2e \
   -max_to_keep_ckpt 60 \
-  -learning_rate 1.2e-4 \
-  -model_dir ./test_e2e_bart\
-  -batch_size 4 \
+  -learning_rate 9e-5 \
+  -model_dir ./test/test_e2e_bart\
+  -batch_size 10 \
   -epochs 60 \
   -backbone fnlp/bart-base-chinese
-
 
