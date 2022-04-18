@@ -76,8 +76,8 @@ class BLEUScorer:
 
         # computing bleu score
         p0 = 1e-7
-        bp = 1 if c > r else math.exp(1 - float(r) / float(c))
-        p_ns = [float(clip_count[i]) / float(count[i] + p0) + p0
+        bp = 1 if c > r else math.exp(1 - float(r) / (float(c)+1e-6))
+        p_ns = [float(clip_count[i]) / float(count[i] + p0+1e-6) + p0
                 for i in range(4)]
         s = math.fsum(w * math.log(p_n)
                       for w, p_n in zip(weights, p_ns) if p_n)
@@ -465,6 +465,7 @@ class CrossWOZEvaluator(object):
             stats[domain][0] = match_stat
             stats[domain][2] = 1
 
+        soft_acc = True
         if soft_acc:
             match = float(match)/len(goal.keys())
         else:

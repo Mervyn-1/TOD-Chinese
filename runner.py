@@ -250,7 +250,6 @@ class CrossWOZRunner(BaseRunner):
         super().__init__(cfg, reader)
 
 
-
     def step_fn(self, belief_inputs,resp_inputs, belief_labels,resp_labels):
         belief_inputs = belief_inputs.to(self.cfg.device)
         resp_inputs = resp_inputs.to(self.cfg.device)
@@ -268,6 +267,12 @@ class CrossWOZRunner(BaseRunner):
         def quick_show(inputs):
             for input in inputs:
                 print(self.reader.tokenizer.decode(input))
+                print(len(input))
+        # print("@@@@@@@@@@@@@@@@@@@@@")
+        # print(quick_show(belief_inputs))
+        # print(quick_show(belief_labels))
+        # print(quick_show(resp_inputs))
+        # print(quick_show(resp_labels))
 
         belief_loss = belief_outputs[0]
         belief_logits = belief_outputs[1]
@@ -364,6 +369,7 @@ class CrossWOZRunner(BaseRunner):
 
         best_joint_acc = 0
         best_epoch = 0
+        best_match_epoch = 0
         best_score = 0
         best_match = 0
         for epoch in range(1, self.cfg.epochs + 1):
@@ -388,7 +394,7 @@ class CrossWOZRunner(BaseRunner):
                         best_epoch = epoch
                     logger.info('[Test] Best joint acc is: {}; at {} epoch'.format(best_joint_acc, best_epoch))
             else:
-                if epoch >= 1 :
+                if epoch >= 5 :
                     metric_results = self.predict()
                     latest_ckpt = 'ckpt-epoch{}'.format(epoch)
                     save_path = os.path.join(self.cfg.model_dir, latest_ckpt)
@@ -397,10 +403,10 @@ class CrossWOZRunner(BaseRunner):
                         best_score = metric_results["all"]["combined_score"]
                         best_epoch = epoch
                     logger.info('[Test] Best score is: {}; at {} epoch'.format(best_score, best_epoch))
-                    if metric_results["all"]["match"] > best_match:
+                    if metric_results["all"]["match"] > best_match_epoch:
                         best_match = metric_results["all"]["match"]
-                        best_epoch = epoch
-                    logger.info('[Test] Best match is: {}; at {} epoch'.format(best_match, best_epoch))
+                        best_match_epoch = epoch
+                    logger.info('[Test] Best match is: {}; at {} epoch'.format(best_match, best_match_epoch))
 
     def validation(self, global_step):
         self.model.eval()
@@ -500,6 +506,7 @@ class CrossWOZRunner(BaseRunner):
         results = {}
         count = 0
 
+        print(len(pred_batches))
 
 
         early_stopping = True if self.cfg.beam_size > 1 else False

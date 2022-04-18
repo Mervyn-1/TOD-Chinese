@@ -140,18 +140,27 @@ class CrossWOZIterator(BaseIterator):
 
             for turn in dial:
                 readable_turn = {}
-
                 for k, v in turn.items():
-                    if k == 'dial_id':
-                        continue
-                    elif k == "pointer":
-                        turn_doamin = turn["turn_domain"][-1]
-                        v = self.reader.db.pointerBack(v, turn_doamin)
-                    elif k in decoded_keys:
-                        v = self.reader.tokenizer.decode(v)
-                        if v[0] == '[SEP]':
-                            v = v[1:]
-                    readable_turn[k] = v
+                    try:
+                        if k == 'dial_id':
+                            continue
+                        elif k == "pointer":
+                            turn_doamin = turn["turn_domain"][-1]
+                            v = self.reader.db.pointerBack(v, turn_doamin)
+                        elif k in decoded_keys:
+                            v = self.reader.tokenizer.decode(v)
+                            if v[0] == '[SEP]':
+                                v = v[1:]
+                        readable_turn[k] = v
+                    except:
+                        if k == 'bspn_gen':
+                            readable_turn[k] = '<bos_belief> <eos_belief>'
+                        elif k == 'dbpn_gen':
+                            readable_turn[k] = '<bos_db> [db_null] <eos_db>'
+                        elif k == 'aspn_gen':
+                            readable_turn[k] = '<bos_act> <eos_act>'
+                        elif k == 'resp_gen':
+                            readable_turn[k] = '<bos_resp> <eos_resp>'
 
                 dialogs[dial_id].append(readable_turn)
         
@@ -408,7 +417,7 @@ class CrossWOZReader(BaseReader):
         return os.path.join('data','crosswoz', 'processed')
 
     def encode_data(self, data_type):
-        data = load_json(os.path.join(self.data_dir, '{}_mttod.json'.format(data_type)))
+        data = load_json(os.path.join(self.data_dir, '{}.json'.format(data_type)))
         
         encoded_data = []
         for fn, dial in tqdm(data.items(), desc=data_type):
