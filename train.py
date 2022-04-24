@@ -16,14 +16,15 @@ from evaluator import CrossWOZEvaluator
 from utils import definitions_cw
 from config import get_config
 from fastNLP.core.log import logger
-from fastNLP import Trainer
+from fastNLP import Trainer,Evaluator
 from fastNLP.core.callbacks import LRSchedCallback,LoadBestModelCallback,TorchGradClipCallback
 from fnlp_metrics import LossMetric, DialogueMetric
 from utils.fnlp_utils import get_dataset
 from fastNLP.core.dataloaders.torch_dataloader import TorchDataLoader
 from fastNLP.core.samplers import BucketedBatchSampler, SequentialSampler
-from utils.fnlp_utils import EvaluateSaveCallback,EvaluateCallback
+# from utils.fnlp_utils import EvaluateSaveCallback,EvaluateCallback
 from fastNLP.core.dataset import DataSet, Instance
+from fastNLP.core.callbacks import MoreEvaluateCallback
 
 
 cfg = get_config()
@@ -452,13 +453,22 @@ def show_outputs(trainer, outputs):
 #     torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.max_grad_norm)
 
 
+def evaluate_every(trainer):
+    if trainer.cur_epoch_idx > 0 and trainer.global_forward_batches % trainer.num_batches_per_epoch==0:
+        return True
+    return False
+
+
 callbacks = [
     # LoadBestModelCallback()
     LRSchedCallback(scheduler=scheduler),
     TorchGradClipCallback(clip_value=cfg.max_grad_norm, clip_type='norm'),
-    EvaluateSaveCallback(test_dl, metrics={'gen':DialogueMetric(cfg, evaluator)}, cfg=cfg,monitor='combined_score#gen',
-                 save_folder = './test/test_e2e_cpt_ddp',save_topk=5)
+    MoreEvaluateCallback(test_dl, metrics={'gen':DialogueMetric(cfg, evaluator)}, topk=10,
+                         folder=cfg.model_dir, topk_monitor='combined_score#gen',
+                         evaluate_every=evaluate_every)
 ]
+
+
 
 
 trainer = Trainer(
@@ -483,6 +493,21 @@ trainer = Trainer(
     larger_better=False,
     torch_ddp_kwargs={'find_unused_parameters': True},
 )
-trainer.run(num_eval_sanity_batch=0)
+if cfg.run_type == 'train':
+    trainer.run()
+elif cfg.run_type == 'predict':
+    trainer.load_model(
+        folder = cfg.model_dir,
+        only_state_dict=True
+    )
+    evaluator = Evaluator(
+        model=model,
+        driver=trainer.driver,
+        dataloaders=test_dl,
+        metrics={'gen':DialogueMetric(cfg, evaluator)},
+        fp16=True
+    )
+
+    evaluator.run()
 
 

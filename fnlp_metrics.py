@@ -1,5 +1,7 @@
 from fastNLP.core.metrics import Metric
-
+from utils.io_utils import save_json
+import json
+import os
 
 class DialogueMetric(Metric):
     def __init__(self, cfg, evaluator):
@@ -20,6 +22,8 @@ class DialogueMetric(Metric):
         results = {}
         for res in result_lst:
             results.update(res)
+        if self.cfg.run_type =='predict':
+            save_json(results, os.path.join(self.cfg.model_dir, self.cfg.output))
         if self.cfg.task == 'dst':
             joint_goal, f1, accuracy, count_dict, correct_dict = self.evaluator.dialog_state_tracking_eval(results)
             metric_results = {'joint_acc': joint_goal, 'acc': accuracy, 'f1': f1}

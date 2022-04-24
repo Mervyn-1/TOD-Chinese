@@ -1,11 +1,8 @@
-CUDA_VISIBLE_DEVICES=7 python main_cw.py \
+CUDA_VISIBLE_DEVICES=0 python train.py \
   -run_type predict \
   -task e2e \
-  -ckpt ./test/test_e2e_cpt/ckpt-epoch18 \
-  -output preds \
-  -batch_size 64 \
-  -epochs 60
-
+  -model_dir ./test/test_e2e_cpt_ddp/2022-04-17-23_03_29_257667/model-epoch_15-batch_31770-combined_score#gen_102.39956345746552 \
+  -output pred_output
 
 
 

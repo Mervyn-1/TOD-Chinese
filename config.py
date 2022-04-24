@@ -30,7 +30,7 @@ def add_config(parser):
     group.add_argument('-train_from', type=str, default=None)
     group.add_argument("-warmup_steps", type=int, default=-1)
     group.add_argument("-warmup_ratio", type=float, default=0.2)
-    group.add_argument("-grad_accum_steps", type=int, default=1)
+    group.add_argument("-grad_accum_steps", type=int, default=10)
     group.add_argument("-learning_rate", type=float, default=1e-4)
     group.add_argument("-num_train_dialogs", type=int, default=-1)
     group.add_argument("-no_learning_rate_decay", action="store_true")

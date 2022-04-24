@@ -6,72 +6,8 @@ from fastNLP.core.utils import f_rich_progress
 from fastNLP import Evaluator
 from fastNLP.core.callbacks.has_monitor_callback import HasMonitorCallback
 from fastNLP.core.log import logger
-
-from fastNLP.core.callbacks import ModelCheckpointCallback
 import json
 import os
-
-
-class EvaluateSaveCallback(ModelCheckpointCallback):
-    def __init__(self, data, metrics, cfg,
-                 monitor='bleu',
-                 save_folder=None,
-                 save_every_n_epochs=None,
-                 save_every_n_batches=None,
-                 save_last: bool = False,
-                 save_topk=None,
-                 save_on_exception=None,
-                 larger_better: bool = True,
-                 only_state_dict: bool = True,
-                 model_save_fn=None,
-                 **kwargs, ):
-        super().__init__(monitor, save_folder, save_every_n_epochs, save_every_n_batches, save_last,
-                         save_topk, save_on_exception, larger_better, only_state_dict, model_save_fn, **kwargs)
-        self.data = data
-        self.metrics = metrics
-        self.cfg = cfg
-
-    def on_after_trainer_initialized(self, trainer, driver):
-        super().on_after_trainer_initialized(trainer, driver)
-        self.evaluator = Evaluator(model=trainer.model, dataloaders=self.data, driver=driver, metrics=self.metrics)
-
-    def on_validate_end(self, trainer, results):
-        if trainer.cur_epoch_idx > 100 and self.cfg.task == 'dst':
-            results = self.evaluator.run()
-            folder = self._save_topk(trainer, results)
-            self._save_results(results, folder)
-
-        elif trainer.cur_epoch_idx > 10:
-            results = self.evaluator.run()
-            folder = self._save_topk(trainer, results)
-            self._save_results(results, folder)
-
-    def _save_results(self, results, folder):
-        if folder:
-            with open(os.path.join(folder, 'results.json'), 'r') as f:
-                json.dump(results, f)
-
-    def on_sanity_check_end(self, trainer, sanity_check_res):
-        pass
-
-class EvaluateCallback(HasMonitorCallback):
-    def __init__(self, data, metrics, cfg, monitor=None, larger_better=True):
-        super(EvaluateCallback, self).__init__(monitor, larger_better, True)
-        self.data = data
-        self.metrics = metrics
-        self.cfg = cfg
-
-    def on_after_trainer_initialized(self, trainer, driver):
-        super(EvaluateCallback, self).on_after_trainer_initialized(trainer, driver)
-        self.evaluator = Evaluator(model=trainer.model, dataloaders=self.data, driver=driver, metrics=self.metrics)
-
-    def on_validate_end(self, trainer, results):
-        # if self.is_better_results(results) and trainer.cur_epoch_idx>100 and self.cfg.task=='dst':
-        if trainer.cur_epoch_idx>100 and self.cfg.task=='dst':
-            self.evaluator.run()
-        # elif self.is_better_results(results) and trainer.cur_epoch_idx>10:
-        elif trainer.cur_epoch_idx>10:
-            self.evaluator.run()
 
 
 def flatten_dial_history(dial_history, len_postfix, context_size, max_seq_len):
